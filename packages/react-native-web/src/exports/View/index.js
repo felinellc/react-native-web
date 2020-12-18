@@ -20,6 +20,7 @@ import useMergeRefs from '../../modules/useMergeRefs';
 import usePlatformMethods from '../../modules/usePlatformMethods';
 import useResponderEvents from '../../modules/useResponderEvents';
 import StyleSheet from '../StyleSheet';
+import LayoutAnimation from '../UIManager/LayoutAnimation';
 import TextAncestorContext from '../Text/TextAncestorContext';
 
 const forwardPropsList = {
@@ -66,10 +67,10 @@ const forwardPropsList = {
   onWheel: true,
   href: true,
   rel: true,
-  target: true
+  target: true,
 };
 
-const pickProps = props => pick(props, forwardPropsList);
+const pickProps = (props) => pick(props, forwardPropsList);
 
 const View = forwardRef<ViewProps, *>((props, forwardedRef) => {
   const {
@@ -89,11 +90,11 @@ const View = forwardRef<ViewProps, *>((props, forwardedRef) => {
     onSelectionChangeShouldSetResponder,
     onSelectionChangeShouldSetResponderCapture,
     onStartShouldSetResponder,
-    onStartShouldSetResponderCapture
+    onStartShouldSetResponderCapture,
   } = props;
 
   if (process.env.NODE_ENV !== 'production') {
-    React.Children.toArray(props.children).forEach(item => {
+    React.Children.toArray(props.children).forEach((item) => {
       if (typeof item === 'string') {
         console.error(`Unexpected text node: ${item}. A text node cannot be a child of a <View>.`);
       }
@@ -120,13 +121,10 @@ const View = forwardRef<ViewProps, *>((props, forwardedRef) => {
     onSelectionChangeShouldSetResponder,
     onSelectionChangeShouldSetResponderCapture,
     onStartShouldSetResponder,
-    onStartShouldSetResponderCapture
+    onStartShouldSetResponderCapture,
   });
 
-  const style = StyleSheet.compose(
-    hasTextAncestor && styles.inline,
-    props.style
-  );
+  const style = StyleSheet.compose(hasTextAncestor && styles.inline, props.style);
 
   const supportedProps = pickProps(props);
   supportedProps.classList = classList;
@@ -137,7 +135,7 @@ const View = forwardRef<ViewProps, *>((props, forwardedRef) => {
 
   supportedProps.ref = setRef;
 
-  return createElement('div', supportedProps);
+  return <LayoutAnimation.Node {...supportedProps} />;
 });
 
 View.displayName = 'View';
@@ -156,16 +154,16 @@ const classes = css.create({
     minWidth: 0,
     padding: 0,
     position: 'relative',
-    zIndex: 0
-  }
+    zIndex: 0,
+  },
 });
 
 const classList = [classes.view];
 
 const styles = StyleSheet.create({
   inline: {
-    display: 'inline-flex'
-  }
+    display: 'inline-flex',
+  },
 });
 
 export type { ViewProps };
