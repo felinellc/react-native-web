@@ -75,7 +75,7 @@ export default function useElementLayout(
   // Observing is done in a separate effect to avoid this effect running
   // when 'onLayout' changes.
   useLayoutEffect(() => {
-    const node = ref.current;
+    let node = ref.current;
     if (node != null && observer != null) {
       if (typeof node[DOM_LAYOUT_HANDLER_NAME] === 'function') {
         observer.observe(node);

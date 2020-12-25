@@ -67,10 +67,10 @@ const forwardPropsList = {
   onWheel: true,
   href: true,
   rel: true,
-  target: true,
+  target: true
 };
 
-const pickProps = (props) => pick(props, forwardPropsList);
+const pickProps = props => pick(props, forwardPropsList);
 
 const View = forwardRef<ViewProps, *>((props, forwardedRef) => {
   const {
@@ -90,11 +90,11 @@ const View = forwardRef<ViewProps, *>((props, forwardedRef) => {
     onSelectionChangeShouldSetResponder,
     onSelectionChangeShouldSetResponderCapture,
     onStartShouldSetResponder,
-    onStartShouldSetResponderCapture,
+    onStartShouldSetResponderCapture
   } = props;
 
   if (process.env.NODE_ENV !== 'production') {
-    React.Children.toArray(props.children).forEach((item) => {
+    React.Children.toArray(props.children).forEach(item => {
       if (typeof item === 'string') {
         console.error(`Unexpected text node: ${item}. A text node cannot be a child of a <View>.`);
       }
@@ -121,7 +121,7 @@ const View = forwardRef<ViewProps, *>((props, forwardedRef) => {
     onSelectionChangeShouldSetResponder,
     onSelectionChangeShouldSetResponderCapture,
     onStartShouldSetResponder,
-    onStartShouldSetResponderCapture,
+    onStartShouldSetResponderCapture
   });
 
   const style = StyleSheet.compose(hasTextAncestor && styles.inline, props.style);
@@ -133,9 +133,15 @@ const View = forwardRef<ViewProps, *>((props, forwardedRef) => {
   const platformMethodsRef = usePlatformMethods(supportedProps);
   const setRef = useMergeRefs(hostRef, platformMethodsRef, forwardedRef);
 
-  supportedProps.ref = setRef;
-
-  return <LayoutAnimation.Node {...supportedProps} />;
+  const innerElement = Object.assign(
+    { ref: setRef },
+    {
+      children: createElement(LayoutAnimation.Node, supportedProps),
+      ...supportedProps
+    }
+  );
+  //console.log('Inner Element:', innerElement);
+  return createElement('div', innerElement);
 });
 
 View.displayName = 'View';
@@ -154,16 +160,16 @@ const classes = css.create({
     minWidth: 0,
     padding: 0,
     position: 'relative',
-    zIndex: 0,
-  },
+    zIndex: 0
+  }
 });
 
 const classList = [classes.view];
 
 const styles = StyleSheet.create({
   inline: {
-    display: 'inline-flex',
-  },
+    display: 'inline-flex'
+  }
 });
 
 export type { ViewProps };

@@ -1,14 +1,14 @@
 /* @flow */
 
-import React, { Component } from "react";
-import StyleSheet from "../StyleSheet";
-import createElement from "../createElement";
+import React, { Component } from 'react';
+import StyleSheet from '../StyleSheet';
+import createElement from '../createElement';
 
 const defaultKeyframeFactory = () => ({
   translateX: 0,
   translateY: 0,
   scaleX: 1.0,
-  scaleY: 1.0,
+  scaleY: 1.0
 });
 
 function LayoutAnimation() {
@@ -30,15 +30,13 @@ function LayoutAnimation() {
     observedElements.delete(view);
   }
 
-  function transformKeyframeToCSSString(
-    transformKeyframe
-  ) {
-    let result = "";
+  function transformKeyframeToCSSString(transformKeyframe) {
+    let result = '';
 
     Object.keys(transformKeyframe).forEach(propName => {
       const value = transformKeyframe[propName];
 
-      if (["translateX", "translateY"].includes(propName)) {
+      if (['translateX', 'translateY'].includes(propName)) {
         result += `${propName}(${value}px) `;
       } else {
         result += `${propName}(${value}) `;
@@ -48,10 +46,7 @@ function LayoutAnimation() {
     return result;
   }
 
-  function getStartingKeyframe(
-    prevRect,
-    nextRect
-  ) {
+  function getStartingKeyframe(prevRect, nextRect) {
     const result = defaultKeyframeFactory();
 
     if (prevRect.left !== nextRect.left) {
@@ -78,84 +73,78 @@ function LayoutAnimation() {
     pendingAnimationConfig,
     originalTargetForRemoval
   ) {
-
     let prevRect = prevCache.get(target);
 
     let latestRect = latestCache.get(originalTargetForRemoval);
 
     let nextRect = target.getBoundingClientRect();
 
-
     let animationKeyframes;
-    let fillMode = "backwards";
+    let fillMode = 'backwards';
 
-    if(!prevRect || originalTargetForRemoval){
-        //Handle opacity.
-        
-        if(!prevRect){
-            //The element was just created!
-            animationKeyframes = [{opacity:0},{opacity:1}];
-        }
-    
-        if(originalTargetForRemoval && latestRect){
-            //The element was removed!
-            animationKeyframes = [{
-                opacity:1,
-                position:"absolute",
-                top: latestRect.y+"px" ,
-                left: latestRect.x+"px"   
-            },{
-                opacity:0,
-                position:"absolute",
-                top: latestRect.y+"px" ,
-                left: latestRect.x+"px"  
-            }];
-            fillMode = "forwards"
-        }
-    }else{
-        //Transformation NEeded
-        if (JSON.stringify(prevRect) === JSON.stringify(nextRect)) {
-            return Promise.resolve();
-        }
-      
-        const startingKeyframe = getStartingKeyframe(prevRect, nextRect);
-        let existingTransform = window
-            .getComputedStyle(target)
-            .getPropertyValue("transform");
-      
-        if (existingTransform === "none") {
-        existingTransform = "translateX(0)";
-        }
-      
+    if (!prevRect || originalTargetForRemoval) {
+      //Handle opacity.
+
+      if (!prevRect) {
+        //The element was just created!
+        animationKeyframes = [{ opacity: 0 }, { opacity: 1 }];
+      }
+
+      if (originalTargetForRemoval && latestRect) {
+        //The element was removed!
         animationKeyframes = [
-            {
-              transform: `${existingTransform} ${transformKeyframeToCSSString(
-                startingKeyframe
-              )}`,
-            },
-            {
-              transform: existingTransform,
-            },
+          {
+            opacity: 1,
+            position: 'absolute',
+            top: latestRect.y + 'px',
+            left: latestRect.x + 'px'
+          },
+          {
+            opacity: 0,
+            position: 'absolute',
+            top: latestRect.y + 'px',
+            left: latestRect.x + 'px'
+          }
         ];
+        fillMode = 'forwards';
+      }
+    } else {
+      //Transformation NEeded
+      if (JSON.stringify(prevRect) === JSON.stringify(nextRect)) {
+        return Promise.resolve();
+      }
+
+      const startingKeyframe = getStartingKeyframe(prevRect, nextRect);
+      let existingTransform = window.getComputedStyle(target).getPropertyValue('transform');
+
+      if (existingTransform === 'none') {
+        existingTransform = 'translateX(0)';
+      }
+
+      animationKeyframes = [
+        {
+          transform: `${existingTransform} ${transformKeyframeToCSSString(startingKeyframe)}`
+        },
+        {
+          transform: existingTransform
+        }
+      ];
     }
-    
+
     const animationConfig = {
       duration: pendingAnimationConfig.duration || 500,
       delay: pendingAnimationConfig.delay || 0,
-      easing: pendingAnimationConfig.type || "linear",
-      fill: fillMode,
+      easing: pendingAnimationConfig.type || 'linear',
+      fill: fillMode
     };
 
     return target.animate(animationKeyframes, animationConfig).finished.then(() => {
-        latestCache.set(target, target.getBoundingClientRect());
-        return Promise.resolve();
+      latestCache.set(target, target.getBoundingClientRect());
+      return Promise.resolve();
     });
   }
 
-  function handleLayoutChange(
-    entries,
-    observer
-  ){
+  function handleLayoutChange(entries, observer) {
     observer.disconnect();
 
     const pendingAnimationConfig = pendingConfig;
@@ -168,9 +157,7 @@ function LayoutAnimation() {
 
     const animations = [];
     for (let entry of entries) {
-      animations.push(
-        constructAndApplyLayoutAnimation(entry.target, pendingAnimationConfig)
-      );
+      animations.push(constructAndApplyLayoutAnimation(entry.target, pendingAnimationConfig));
     }
     return Promise.all(animations).then(() => Promise.resolve());
   }
@@ -185,8 +172,9 @@ function LayoutAnimation() {
     for (let element of observedElements) {
       const rect = element.getBoundingClientRect();
 
-      if(rect.height && rect.width) prevCache.set(element, element.getBoundingClientRect());
-      
+      if (rect.height && rect.width) prevCache.set(element, element.getBoundingClientRect());
+
+      console.log('Observing element', element);
       ro.observe(element);
     }
   }
@@ -196,12 +184,34 @@ function LayoutAnimation() {
   class LayoutAnimatedNode extends Component {
     node;
 
+    constructor(props) {
+      super(props);
+
+      if (!global.id) {
+        global.id = 1;
+      }
+
+      this.id = 'animatedNode-' + global.id;
+      global.id++;
+
+      this.element = createElement('div', props, this.id);
+    }
+
+    getElement() {
+      console.log('Getting Element', this.id, document.getElementById(this.id));
+      return document.getElementById(this.id);
+    }
+
+    getId() {
+      return this.id;
+    }
+
     componentDidMount() {
-        this.node = Object.values(this.refs)[0]
-        if (this.node != null && this.props.animate) {
-            registerElement(this.node);
-            constructAndApplyLayoutAnimation(this.node, {});
-        }
+      this.node = Object.values(this.refs)[0];
+      if (this.node != null && this.props.animate) {
+        registerElement(this.node);
+        constructAndApplyLayoutAnimation(this.node, {});
+      }
     }
 
     componentWillUnmount() {
@@ -210,63 +220,56 @@ function LayoutAnimation() {
         var clone = this.node.cloneNode(true);
         const parent = this.node.parentElement;
         parent.appendChild(clone);
-        document.body.setAttribute('style','pointer-events:none')
-        constructAndApplyLayoutAnimation(clone, {}, this.node)
-        .then(() => {
-            parent.removeChild(clone);
-            document.body.setAttribute('style','')
-        })
+        document.body.setAttribute('style', 'pointer-events:none');
+        constructAndApplyLayoutAnimation(clone, {}, this.node).then(() => {
+          parent.removeChild(clone);
+          document.body.setAttribute('style', '');
+        });
       }
     }
 
-    componentDidUpdate(){
-        
+    componentDidUpdate() {
+      this.domElement = document.getElementById(this.id);
     }
 
     render() {
+      let props = Object.assign({}, this.props);
 
-        let props = Object.assign({},this.props);
+      if (props.animate) {
+        configureNext({
+          duration: props.animateDuration || 500,
+          type: props.animateEasing || 'ease-in-out'
+        });
+      }
+      if (props.animateChildren) {
+        props.children = props.children.map(childFreeze => {
+          if (!childFreeze) return childFreeze;
+          let child = Object.assign({}, childFreeze);
+          child.props = Object.assign({}, child.props, {
+            animate: true,
+            animateDuration: props.animateDuration,
+            animateEasing: props.animateEasing
+          });
+          return child;
+        });
+      }
 
-        if(props.animate){
-            configureNext({
-                duration: props.animateDuration || 500,
-                type: props.animateEasing || "ease-in-out",
-            });
+      props.style = [
+        props.style,
+        {
+          transformOrigin: 'center center',
+          willChange: 'transform'
         }
-        if(props.animateChildren){
-            props.children = props.children.map(childFreeze => {
-                if(!childFreeze) return childFreeze;
-                let child = Object.assign({}, childFreeze);
-                child.props = Object.assign({}, child.props, {animate: true, animateDuration: props.animateDuration, animateEasing: props.animateEasing});
-                return child;
-            })
-        }
+      ];
 
-
-        let style = [props.style, {
-            transformOrigin: "center center",
-            willChange: "transform",
-            //overflow:"visible",
-            //borderWidth:2,
-            //borderColor:"red"
-        }];
-        
-        if(!global.id){
-            global.id = 1;
-        }
-
-        id = global.id;
-        global.id++;
-
-        props.style = style;
-    
-        return createElement('div', props, "animatedNode-"+id);
+      //console.log('AnimationInnerElement', props);
+      return createElement('div', props);
     }
   }
 
   return {
     configureNext,
-    Node: LayoutAnimatedNode,
+    Node: LayoutAnimatedNode
   };
 }
 
